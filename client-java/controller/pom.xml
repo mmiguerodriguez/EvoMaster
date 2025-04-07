@@ -199,6 +199,21 @@
             <artifactId>mongodb-driver-sync</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.opensearch.client</groupId>
+            <artifactId>opensearch-java</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.opensearch.client</groupId>
+            <artifactId>opensearch-rest-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.opensearch</groupId>
+            <artifactId>opensearch-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!--gRPC RPC test-->
         <dependency>
