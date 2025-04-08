@@ -1,6 +1,5 @@
 package org.evomaster.client.java.controller.opensearch;
 
-import java.io.IOException;
 import java.util.Map;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -14,13 +13,15 @@ import org.opensearch.client.RestClient;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.IndexRequest;
-import org.opensearch.client.opensearch.core.IndexResponse;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
+import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.rest_client.RestClientTransport;
 import org.opensearch.testcontainers.OpensearchContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.utility.DockerImageName;
 
 public class OpenSearchScriptRunnerTest {
@@ -28,6 +29,7 @@ public class OpenSearchScriptRunnerTest {
     private static OpenSearchClient client;
     private static final int OPENSEARCH_PORT = 9200;
     private static final OpensearchContainer<?> opensearch = new OpensearchContainer<>(DockerImageName.parse("opensearchproject/opensearch:latest"));
+    private static Logger log = LoggerFactory.getLogger(OpenSearchScriptRunnerTest.class);
 
     @BeforeAll
     public static void initClass() throws Exception {
@@ -44,34 +46,45 @@ public class OpenSearchScriptRunnerTest {
     }
 
     @Test
-    public void testInsert() throws IOException {
+    public void testInsert() throws Exception {
         String index = "testindex";
-        CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder().index(index).build();
-        client.indices().create(createIndexRequest);
 
-        IndexData indexData = new IndexData("first_name", "Bruce");
+        try {
+            DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest.Builder().index(index).build();
+            getClient().indices().delete(deleteIndexRequest);
+        } catch (Exception e) {
+            // Ignore if the index does not exist
+        }
+
+        CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder().index(index).build();
+        getClient().indices().create(createIndexRequest);
+
+        IndexData indexData = new IndexData("Miguel", "Rodriguez");
         IndexRequest<IndexData> indexRequest = new IndexRequest.Builder<IndexData>().index(index).id("1").document(indexData).build();
-        IndexResponse resp = client.index(indexRequest);
+        getClient().index(indexRequest);
 
         SearchRequest searchRequest = new SearchRequest.Builder()
             .index(index)
-            .query(q -> q.queryString(qs -> qs.fields("lastName").query("Bruce")))
+            .query(q -> q.queryString(qs -> qs.fields("firstName").query("Miguel")))
             .build();
 
-        //Search for the document
-        SearchResponse<?> searchResponse = client.search(searchRequest, Map.class);
+        // Retry mechanism
+        int retries = 3;
+        int delay = 1000;
+        SearchResponse<?> searchResponse = null;
+        for (int i = 0; i < retries; i++) {
+            searchResponse = getClient().search(searchRequest, Map.class);
+            if (!searchResponse.hits().hits().isEmpty()) {
+                break;
+            }
+            Thread.sleep(delay);
+        }
 
+        assertNotNull(searchResponse);
         assertEquals(1, searchResponse.hits().hits().size());
-
-//        //Delete the document
-//        client.delete(b -> b.index(index).id("1"));
-//
-//        // Delete the index
-//        DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest.Builder().index(index).build();
-//        DeleteIndexResponse deleteIndexResponse = client.indices().delete(deleteIndexRequest);
     }
 
-    public Object getConnection() {
+    public OpenSearchClient getClient() {
         return client;
     }
 
