@@ -307,6 +307,16 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
         }
     }
 
+    public final void initOpenSearchHandler() {
+        Object connection = getOpenSearchConnection();
+        openSearchHandler.setOpenSearchClient(connection);
+
+        List<AdditionalInfo> list = getAdditionalInfoList();
+        if(!list.isEmpty()) {
+            AdditionalInfo last = list.get(list.size() - 1);
+            last.getOpenSearchIndexTypeData().forEach(openSearchHandler::handle);
+        }
+    }
 
     /**
      * TODO further handle multiple connections
@@ -329,6 +339,7 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
     public final void resetExtraHeuristics() {
         sqlHandler.reset();
         mongoHandler.reset();
+        openSearchHandler.reset();
     }
 
     /**
@@ -350,14 +361,19 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
 
         ExtraHeuristicsDto dto = new ExtraHeuristicsDto();
 
-        if (isSQLHeuristicsComputationAllowed() || isMongoHeuristicsComputationAllowed()) {
+        if (isSQLHeuristicsComputationAllowed() || isMongoHeuristicsComputationAllowed() || isOpenSearchHeuristicsComputationAllowed()) {
             List<AdditionalInfo> additionalInfoList = getAdditionalInfoList();
 
             if (isSQLHeuristicsComputationAllowed()) {
                 computeSQLHeuristics(dto, additionalInfoList, queryFromDatabase);
             }
+
             if (isMongoHeuristicsComputationAllowed()) {
                 computeMongoHeuristics(dto, additionalInfoList);
+            }
+
+            if (isOpenSearchHeuristicsComputationAllowed()) {
+                computeOpenSearchHeuristics(dto, additionalInfoList);
             }
         }
         return dto;
@@ -369,6 +385,10 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
 
     private boolean isMongoHeuristicsComputationAllowed() {
         return mongoHandler.isCalculateHeuristics() || mongoHandler.isExtractMongoExecution();
+    }
+
+    private boolean isOpenSearchHeuristicsComputationAllowed() {
+        return openSearchHandler.isCalculateHeuristics() || openSearchHandler.isExtractOpenSearchExecution();
     }
 
     private void computeSQLHeuristics(ExtraHeuristicsDto dto, List<AdditionalInfo> additionalInfoList, boolean queryFromDatabase) {
@@ -415,6 +435,7 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
         }
     }
 
+    // private void, now public final void?
     public final void computeMongoHeuristics(ExtraHeuristicsDto dto, List<AdditionalInfo> additionalInfoList){
         if(mongoHandler.isCalculateHeuristics()){
             if(!additionalInfoList.isEmpty()) {
@@ -451,6 +472,42 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
         }
     }
 
+    public final void computeOpenSearchHeuristics(ExtraHeuristicsDto dto, List<AdditionalInfo> additionalInfoList) {
+        if (openSearchHandler.isCalculateHeuristics()) {
+            if (!additionalInfoList.isEmpty()) {
+                AdditionalInfo last = additionalInfoList.get(additionalInfoList.size() - 1);
+                last.getOpenSearchInfoData()
+                    .forEach(
+                        it -> {
+                            try {
+                                openSearchHandler.handle(it);
+                            } catch (Exception e) {
+                                SimpleLogger.error("FAILED TO HANDLE OPENSEARCH COMMAND");
+                                assert false;
+                            }
+                        });
+            }
+
+            openSearchHandler.getEvaluatedOpenSearchCommands().stream()
+                .map(p ->
+                    new ExtraHeuristicEntryDto(
+                        ExtraHeuristicEntryDto.Type.OPENSEARCH,
+                        ExtraHeuristicEntryDto.Objective.MINIMIZE_TO_ZERO,
+                        p.getOpenSearchCommand().toString(),
+                        p.getOpenSearchDistanceWithMetrics().getOpenSearchDistance(),
+                        p.getOpenSearchDistanceWithMetrics().getNumberOfEvaluatedDocuments(),
+                        false))
+                .forEach(h -> dto.heuristics.add(h));
+        }
+
+        if (openSearchHandler.isExtractOpenSearchExecution()){
+            if (!additionalInfoList.isEmpty()) {
+                AdditionalInfo last = additionalInfoList.get(additionalInfoList.size() - 1);
+                last.getOpenSearchIndexTypeData().forEach(openSearchHandler::handle);
+            }
+            dto.openSearchExecutionsDto = openSearchHandler.getExecutionDto();
+        }
+    }
 
     /**
      * handle specified init sql script after SUT is started.
@@ -1359,6 +1416,8 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
 
     public abstract void setExecutingInitMongo(boolean executingInitMongo);
 
+    public abstract void setExecutingInitOpenSearch(boolean executingInitOpenSearch);
+
     public abstract void setExecutingAction(boolean executingAction);
 
 
@@ -1701,17 +1760,5 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
     @Override
     public Map<Class, Integer> getExceptionImportanceLevels() {
         return null;
-    }
-
-    public final void initOpenSearchHandler() {
-        // This is needed because the replacement use to get this info occurs during the start of the SUT.
-        Object connection = getOpenSearchConnection();
-        openSearchHandler.setOpenSearchClient(connection);
-
-//        List<AdditionalInfo> list = getAdditionalInfoList();
-//        if(!list.isEmpty()) {
-//            AdditionalInfo last = list.get(list.size() - 1);
-//            last.getMongoCollectionTypeData().forEach(mongoHandler::handle);
-//        }
     }
 }

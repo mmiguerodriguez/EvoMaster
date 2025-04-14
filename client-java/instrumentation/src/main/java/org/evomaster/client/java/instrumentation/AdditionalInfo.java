@@ -106,7 +106,11 @@ public class AdditionalInfo implements Serializable {
 
     private final Set<MongoFindCommand> mongoFindCommandData = new CopyOnWriteArraySet<>();
 
+    private final Set<OpenSearchSearchCommand> openSearchSearchCommandData = new CopyOnWriteArraySet<>();
+
     private final Set<MongoCollectionSchema> mongoCollectionSchemaData = new CopyOnWriteArraySet<>();
+
+    private final Set<OpenSearchIndexSchema> openSearchIndexSchemaData = new CopyOnWriteArraySet<>();
 
     public Set<ExecutedSqlCommand> getSqlInfoData(){
         return Collections.unmodifiableSet(executedSqlCommandData);
@@ -116,8 +120,16 @@ public class AdditionalInfo implements Serializable {
         return Collections.unmodifiableSet(mongoFindCommandData);
     }
 
+    public Set<OpenSearchSearchCommand> getOpenSearchInfoData() {
+        return Collections.unmodifiableSet(openSearchSearchCommandData);
+    }
+
     public Set<MongoCollectionSchema> getMongoCollectionTypeData(){
         return Collections.unmodifiableSet(mongoCollectionSchemaData);
+    }
+
+    public Set<OpenSearchIndexSchema> getOpenSearchIndexTypeData() {
+        return Collections.unmodifiableSet(openSearchIndexSchemaData);
     }
 
     public void addSqlInfo(ExecutedSqlCommand info){
@@ -128,8 +140,16 @@ public class AdditionalInfo implements Serializable {
         mongoFindCommandData.add(info);
     }
 
+    public void addOpenSearchInfo(OpenSearchSearchCommand info){
+        openSearchSearchCommandData.add(info);
+    }
+
     public void addMongoCollectionType(MongoCollectionSchema mongoCollectionSchema){
         mongoCollectionSchemaData.add(mongoCollectionSchema);
+    }
+
+    public void addOpenSearchIndexType(OpenSearchIndexSchema openSearchIndexSchema){
+        openSearchIndexSchemaData.add(openSearchIndexSchema);
     }
 
     public Set<String> getParsedDtoNamesView(){

@@ -29,11 +29,19 @@ import static org.evomaster.client.java.instrumentation.shared.ExternalServiceSh
 public class ExecutionTracer {
 
     /**
-     * indicate whether now it is to execute sql initialized by evomaster
+     * Indicate whether now it is to execute SQL initialized by EvoMaster
      */
     private static boolean executingInitSql = false;
 
+    /**
+     * Indicate whether now it is to execute Mongo initialized by EvoMaster
+     */
     private static boolean executingInitMongo = false;
+
+    /**
+     * Indicate whether now it is to execute OpenSearch initialized by EvoMaster
+     */
+    private static boolean executingInitOpenSearch = false;
 
     /**
      * indicate whether now it is to execute action during the search
@@ -193,6 +201,10 @@ public class ExecutionTracer {
 
     public static void setExecutingInitMongo(boolean executingInitMongo) {
         ExecutionTracer.executingInitMongo = executingInitMongo;
+    }
+
+    public static void setExecutingInitOpenSearch(boolean executingInitOpenSearch) {
+        ExecutionTracer.executingInitOpenSearch = executingInitOpenSearch;
     }
 
     public static boolean isExecutingAction() {
@@ -426,6 +438,17 @@ public class ExecutionTracer {
     public static void addMongoCollectionType(MongoCollectionSchema mongoCollectionSchema){
         if (!executingInitMongo) {
             getCurrentAdditionalInfo().addMongoCollectionType(mongoCollectionSchema);
+        }
+    }
+
+    public static void addOpenSearchInfo(OpenSearchSearchCommand info){
+        if (!executingInitOpenSearch)
+            getCurrentAdditionalInfo().addOpenSearchInfo(info);
+    }
+
+    public static void addOpenSearchIndexType(OpenSearchIndexSchema openSearchIndexSchema){
+        if (!executingInitOpenSearch) {
+            getCurrentAdditionalInfo().addOpenSearchIndexType(openSearchIndexSchema);
         }
     }
 

@@ -11,7 +11,7 @@ public class ExtraHeuristicEntryDto implements Serializable {
      * The type of extra heuristic.
      * Note: for the moment, we only have heuristics on SQL commands
      */
-    public enum Type {SQL, MONGO}
+    public enum Type {SQL, MONGO, OPENSEARCH}
 
     /**
      * Should we try to minimize or maximize the heuristic?

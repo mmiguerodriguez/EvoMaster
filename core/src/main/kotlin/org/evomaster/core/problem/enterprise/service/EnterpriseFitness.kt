@@ -360,4 +360,37 @@ abstract class EnterpriseFitness<T> : FitnessFunction<T>() where T : Individual 
                 }
         }
     }
+
+    private fun handleOpenSearchHeuristics(dto: TestResultsDto, fv: FitnessValue) {
+        for (i in 0 until dto.extraHeuristics.size) {
+
+            val extra = dto.extraHeuristics[i]
+
+            extraHeuristicsLogger.writeHeuristics(extra.heuristics, i)
+
+            val toMinimize = extra.heuristics
+                .filter {
+                    it != null
+                            && it.objective == ExtraHeuristicEntryDto.Objective.MINIMIZE_TO_ZERO
+                            && it.type == ExtraHeuristicEntryDto.Type.OPENSEARCH
+                }.map { it.value }
+                .toList()
+
+            if (toMinimize.isNotEmpty()) {
+                fv.setExtraToMinimize(i, toMinimize)
+            }
+
+            extra.heuristics
+                .filterNotNull().forEach {
+                    if (it.type == ExtraHeuristicEntryDto.Type.OPENSEARCH) {
+                        statistics.reportNumberOfEvaluatedDocumentsForOpenSearchHeuristic(it.numberOfEvaluatedRecords)
+                        if (it.extraHeuristicEvaluationFailure) {
+                            statistics.reportOpenSearchHeuristicEvaluationFailure()
+                        } else {
+                            statistics.reportOpenSearchHeuristicEvaluationSuccess()
+                        }
+                    }
+                }
+        }
+    }
 }

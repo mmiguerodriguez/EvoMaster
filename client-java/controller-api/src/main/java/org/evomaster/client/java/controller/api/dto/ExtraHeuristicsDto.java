@@ -1,7 +1,8 @@
 package org.evomaster.client.java.controller.api.dto;
 
-import org.evomaster.client.java.controller.api.dto.database.execution.SqlExecutionsDto;
 import org.evomaster.client.java.controller.api.dto.database.execution.MongoExecutionsDto;
+import org.evomaster.client.java.controller.api.dto.database.execution.OpenSearchExecutionsDto;
+import org.evomaster.client.java.controller.api.dto.database.execution.SqlExecutionsDto;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,4 +22,6 @@ public class ExtraHeuristicsDto {
     public SqlExecutionsDto sqlSqlExecutionsDto;
 
     public MongoExecutionsDto mongoExecutionsDto;
+
+    public OpenSearchExecutionsDto openSearchExecutionsDto;
 }

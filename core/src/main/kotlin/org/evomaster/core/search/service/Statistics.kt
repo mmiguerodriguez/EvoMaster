@@ -78,6 +78,10 @@ class Statistics : SearchListener {
     private var mongoHeuristicEvaluationFailureCount = 0
     private val mongoDocumentsAverageCalculator = IncrementalAverage()
 
+    private var openSearchHeuristicEvaluationSuccessCount = 0
+    private var openSearchHeuristicEvaluationFailureCount = 0
+    private val openSearchDocumentsAverageCalculator = IncrementalAverage()
+
    class Pair(val header: String, val element: String)
 
 
@@ -162,7 +166,11 @@ class Statistics : SearchListener {
 
     fun reportNumberOfEvaluatedDocumentsForMongoHeuristic(numberOfEvaluatedDocuments: Int) {
         mongoDocumentsAverageCalculator.addValue(numberOfEvaluatedDocuments)
-        mongoDocumentsAverageCalculator.addValue(numberOfEvaluatedDocuments)
+        mongoDocumentsAverageCalculator.addValue(numberOfEvaluatedDocuments) // TODO-MIGUE: Why do we add it twice?
+    }
+
+    fun reportNumberOfEvaluatedDocumentsForOpenSearchHeuristic(numberOfEvaluatedDocuments: Int) {
+        openSearchDocumentsAverageCalculator.addValue(numberOfEvaluatedDocuments)
     }
 
     fun reportSqlParsingFailures(numberOfParsingFailures: Int) {
@@ -188,13 +196,25 @@ class Statistics : SearchListener {
         mongoHeuristicEvaluationFailureCount++
     }
 
+    fun reportOpenSearchHeuristicEvaluationSuccess() {
+        openSearchHeuristicEvaluationSuccessCount++
+    }
+
+    fun reportOpenSearchHeuristicEvaluationFailure() {
+        openSearchHeuristicEvaluationFailureCount++
+    }
+
     fun getMongoHeuristicsEvaluationCount(): Int = mongoHeuristicEvaluationSuccessCount + mongoHeuristicEvaluationFailureCount
 
     fun getSqlHeuristicsEvaluationCount(): Int = sqlHeuristicEvaluationSuccessCount + sqlHeuristicEvaluationFailureCount
 
+    fun getOpenSearchHeuristicsEvaluationCount(): Int = openSearchHeuristicEvaluationSuccessCount + openSearchHeuristicEvaluationFailureCount
+
     fun averageNumberOfEvaluatedRowsForSqlHeuristics(): Double = sqlRowsAverageCalculator.mean
 
     fun averageNumberOfEvaluatedDocumentsForMongoHeuristics(): Double = mongoDocumentsAverageCalculator.mean
+
+    fun averageNumberOfEvaluatedDocumentsForOpenSearchHeuristics(): Double = openSearchDocumentsAverageCalculator.mean
 
     override fun newActionEvaluated() {
         if (snapshotThreshold <= 0) {
@@ -347,7 +367,6 @@ class Statistics : SearchListener {
         }
         return sampler!!.numberOfDistinctActions()
     }
-
 
     private fun addConfig(list: MutableList<Pair>) {
 
