@@ -27,6 +27,7 @@ import org.evomaster.client.java.controller.api.dto.MockDatabaseDto;
 import org.evomaster.client.java.controller.api.dto.problem.RPCProblemDto;
 import org.evomaster.client.java.controller.api.dto.problem.rpc.*;
 import org.evomaster.client.java.controller.api.dto.problem.rpc.RPCTestDto;
+import org.evomaster.client.java.controller.internal.db.OpenSearchHandler;
 import org.evomaster.client.java.sql.DbCleaner;
 import org.evomaster.client.java.sql.SqlScriptRunner;
 import org.evomaster.client.java.sql.SqlScriptRunnerCached;
@@ -85,6 +86,8 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
     private final SqlHandler sqlHandler = new SqlHandler(new TaintHandlerExecutionTracer());
 
     private final MongoHandler mongoHandler = new MongoHandler();
+
+    private final OpenSearchHandler openSearchHandler = new OpenSearchHandler();
 
     private Server controllerServer;
 
@@ -1698,5 +1701,17 @@ public abstract class SutController implements SutHandler, CustomizationHandler 
     @Override
     public Map<Class, Integer> getExceptionImportanceLevels() {
         return null;
+    }
+
+    public final void initOpenSearchHandler() {
+        // This is needed because the replacement use to get this info occurs during the start of the SUT.
+        Object connection = getOpenSearchConnection();
+        openSearchHandler.setOpenSearchClient(connection);
+
+//        List<AdditionalInfo> list = getAdditionalInfoList();
+//        if(!list.isEmpty()) {
+//            AdditionalInfo last = list.get(list.size() - 1);
+//            last.getMongoCollectionTypeData().forEach(mongoHandler::handle);
+//        }
     }
 }

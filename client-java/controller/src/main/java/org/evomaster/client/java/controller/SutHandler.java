@@ -179,7 +179,7 @@ public interface SutHandler {
 
     default Object getMongoConnection() {return null;}
 
-
+    default Object getOpenSearchConnection() {return null;}
     /**
      * <p>
      * register or execute specified SQL script for initializing data in database
