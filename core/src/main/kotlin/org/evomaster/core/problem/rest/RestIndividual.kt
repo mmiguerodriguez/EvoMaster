@@ -10,7 +10,6 @@ import org.evomaster.core.problem.api.ApiWsIndividual
 import org.evomaster.core.problem.enterprise.EnterpriseActionGroup
 import org.evomaster.core.problem.enterprise.EnterpriseChildTypeVerifier
 import org.evomaster.core.problem.enterprise.SampleType
-import org.evomaster.core.problem.externalservice.ApiExternalServiceAction
 import org.evomaster.core.problem.externalservice.HostnameResolutionAction
 import org.evomaster.core.problem.rest.resource.RestResourceCalls
 import org.evomaster.core.problem.rest.resource.SamplerSpecification
@@ -34,13 +33,22 @@ class RestIndividual(
     sampleType: SampleType,
     val sampleSpec: SamplerSpecification? = null,
     trackOperator: TrackOperator? = null,
-    index : Int = -1,
-    allActions : MutableList<out ActionComponent>,
-    mainSize : Int = allActions.size,
+    index: Int = -1,
+    allActions: MutableList<out ActionComponent>,
+    mainSize: Int = allActions.size,
     sqlSize: Int = 0,
     mongoSize: Int = 0,
     dnsSize: Int = 0,
-    groups : GroupsOfChildren<StructuralElement> = getEnterpriseTopGroups(allActions,mainSize,sqlSize,mongoSize,dnsSize, 0)
+    openSearchSize: Int = 0,
+    groups: GroupsOfChildren<StructuralElement> = getEnterpriseTopGroups(
+        allActions,
+        mainSize,
+        sqlSize,
+        mongoSize,
+        dnsSize,
+        0,
+        openSearchSize
+    )
 ): ApiWsIndividual(sampleType, trackOperator, index, allActions,
     childTypeVerifier = EnterpriseChildTypeVerifier(RestCallAction::class.java,RestResourceCalls::class.java),
     groups) {
@@ -68,9 +76,13 @@ class RestIndividual(
         dbInitialization: MutableList<SqlAction> = mutableListOf(),
         trackOperator: TrackOperator? = null,
         index : Int = -1
-    ) : this(sampleType, sampleSpec, trackOperator, index, mutableListOf<ActionComponent>().apply {
-        addAll(dbInitialization); addAll(resourceCalls)
-    }, resourceCalls.size, dbInitialization.size)
+    ) : this(
+        sampleType, sampleSpec, trackOperator, index,
+        mutableListOf<ActionComponent>().apply {
+            addAll(dbInitialization); addAll(resourceCalls)
+        },
+        resourceCalls.size, dbInitialization.size,
+    )
 
     constructor(
         actions: MutableList<out Action>,
@@ -91,15 +103,16 @@ class RestIndividual(
 
     override fun copyContent(): Individual {
         return RestIndividual(
-                sampleType,
-                sampleSpec?.copy(),
-                trackOperator,
-                index,
-                children.map { it.copy() }.toMutableList() as MutableList<out ActionComponent>,
-                mainSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.MAIN),
-                sqlSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_SQL),
-                mongoSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_MONGO),
-                dnsSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_DNS)
+            sampleType,
+            sampleSpec?.copy(),
+            trackOperator,
+            index,
+            children.map { it.copy() }.toMutableList() as MutableList<out ActionComponent>,
+            mainSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.MAIN),
+            sqlSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_SQL),
+            mongoSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_MONGO),
+            dnsSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_DNS),
+            openSearchSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_OPENSEARCH),
         )
     }
 

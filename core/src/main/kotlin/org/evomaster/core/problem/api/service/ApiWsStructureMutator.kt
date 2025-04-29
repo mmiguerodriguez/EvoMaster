@@ -160,6 +160,7 @@ abstract class ApiWsStructureMutator : StructureMutator() {
     ) {
         addInitializingSqlActions(individual, mutatedGenes, sampler)
         addInitializingMongoDbActions(individual, mutatedGenes, sampler)
+        addInitializingOpenSearchActions(individual, mutatedGenes, sampler)
         addInitializingHostnameResolutionActions(individual, mutatedGenes, sampler)
     }
 
@@ -194,6 +195,45 @@ abstract class ApiWsStructureMutator : StructureMutator() {
                 oldMongoDbActions,
                 addedMongoDbInsertions,
                 ImpactsOfIndividual.MONGODB_ACTION_KEY,
+                config
+            )
+        }
+    }
+
+    // TODO-MIGUE: Validate
+    private fun <T: ApiWsIndividual> addInitializingOpenSearchActions(
+        individual: EvaluatedIndividual<*>,
+        mutatedGenes: MutatedGeneSpecification?,
+        sampler: ApiWsSampler<T>
+    ) {
+        if (!config.shouldGenerateOpenSearchData()) {
+            return
+        }
+
+        val ind = individual.individual as? T
+            ?: throw IllegalArgumentException("Invalid individual type")
+
+        // TODO-MIGUE: Review getViewOfAggregatedFailedFind()
+        val fw = individual.fitness.getViewOfAggregatedFailedFind()
+
+        if (fw.isEmpty()) {
+            return
+        }
+
+        val oldOpenSearchActions = mutableListOf<EnvironmentAction>().plus(ind.seeInitializingActions())
+
+        // TODO-MIGUE: Review handleFailedFind()
+        val addedOpenSearchInsertions = handleFailedFind(ind, fw, mutatedGenes, sampler)
+
+
+        ind.repairInitializationActions(randomness)
+        // update impact based on added genes
+        if (mutatedGenes != null && config.isEnabledArchiveGeneSelection()) {
+            individual.updateImpactGeneDueToAddedInitializationGenes(
+                mutatedGenes,
+                oldOpenSearchActions,
+                addedOpenSearchInsertions,
+                ImpactsOfIndividual.OPENSEARCH_ACTION_KEY,
                 config
             )
         }

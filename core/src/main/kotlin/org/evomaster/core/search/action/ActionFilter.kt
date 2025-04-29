@@ -64,5 +64,10 @@ enum class ActionFilter {
     /**
      * Actions related to invoke schedule task
      */
-    ONLY_SCHEDULE_TASK
+    ONLY_SCHEDULE_TASK,
+
+    /**
+     * actions which are OPENSEARCH-related actions
+     */
+    ONLY_OPENSEARCH,
 }

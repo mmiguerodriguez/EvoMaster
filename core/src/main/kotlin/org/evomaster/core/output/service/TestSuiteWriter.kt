@@ -3,6 +3,7 @@ package org.evomaster.core.output.service
 import com.google.inject.Inject
 import org.evomaster.client.java.controller.api.dto.database.operations.InsertionDto
 import org.evomaster.client.java.controller.api.dto.database.operations.MongoInsertionDto
+import org.evomaster.client.java.controller.api.dto.database.operations.OpenSearchInsertionDto
 import org.evomaster.client.java.instrumentation.shared.ExternalServiceSharedUtils
 import org.evomaster.core.EMConfig
 import org.evomaster.core.output.*
@@ -441,6 +442,11 @@ class TestSuiteWriter {
                 addImport("org.evomaster.client.java.controller.mongo.dsl.MongoDsl.mongo", lines, true)
                 addImport("org.evomaster.client.java.controller.api.dto.database.operations.MongoInsertionResultsDto", lines)
                 addImport(MongoInsertionDto::class.qualifiedName!!, lines)
+            }
+
+            if(solution.hasAnyOpenSearchAction()) {
+                addImport("org.evomaster.client.java.controller.api.dto.database.operations.OpenSearchInsertionResultsDto", lines)
+                addImport(OpenSearchInsertionDto::class.qualifiedName!!, lines)
             }
 
             if (config.enableBasicAssertions) {

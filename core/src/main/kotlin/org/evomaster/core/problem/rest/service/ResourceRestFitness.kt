@@ -4,6 +4,7 @@ package org.evomaster.core.problem.rest.service
 import com.google.inject.Inject
 import org.evomaster.core.sql.SqlAction
 import org.evomaster.core.mongo.MongoDbAction
+import org.evomaster.core.opensearch.OpenSearchAction
 import org.evomaster.core.problem.enterprise.EnterpriseActionGroup
 import org.evomaster.core.problem.externalservice.ApiExternalServiceAction
 import org.evomaster.core.problem.externalservice.httpws.HttpExternalServiceAction
@@ -71,6 +72,7 @@ class ResourceRestFitness : AbstractRestFitness() {
         )
 
         doMongoDbCalls(individual.seeInitializingActions().filterIsInstance<MongoDbAction>(), actionResults)
+        doOpenSearchDbCalls(individual.seeInitializingActions().filterIsInstance<OpenSearchAction>(), actionResults)
 
         val cookies = AuthUtils.getCookies(client, getBaseUrl(), individual)
         val tokens = AuthUtils.getTokens(client, getBaseUrl(), individual)

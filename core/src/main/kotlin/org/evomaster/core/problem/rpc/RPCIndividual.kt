@@ -1,12 +1,9 @@
 package org.evomaster.core.problem.rpc
 
 import org.evomaster.core.Lazy
-import org.evomaster.core.search.action.Action
 import org.evomaster.core.search.action.ActionComponent
-import org.evomaster.core.search.action.ActionFilter
 import org.evomaster.core.sql.SqlAction
 import org.evomaster.core.sql.SqlActionUtils
-import org.evomaster.core.mongo.MongoDbAction
 import org.evomaster.core.problem.api.ApiWsIndividual
 import org.evomaster.core.problem.enterprise.EnterpriseActionGroup
 import org.evomaster.core.problem.enterprise.EnterpriseChildTypeVerifier
@@ -15,7 +12,6 @@ import org.evomaster.core.problem.externalservice.ApiExternalServiceAction
 import org.evomaster.core.scheduletask.ScheduleTaskAction
 
 import org.evomaster.core.search.*
-import org.evomaster.core.search.gene.Gene
 import org.evomaster.core.search.tracer.TrackOperator
 import java.util.*
 import kotlin.math.max
@@ -32,8 +28,17 @@ class RPCIndividual(
     sqlSize: Int = 0,
     mongoSize: Int = 0,
     dnsSize: Int = 0,
-    scheduleTaskSize : Int = 0,
-    groups: GroupsOfChildren<StructuralElement> = getEnterpriseTopGroups(allActions, mainSize, sqlSize,mongoSize,dnsSize, scheduleTaskSize)
+    scheduleTaskSize: Int = 0,
+    openSearchSize: Int = 0,
+    groups: GroupsOfChildren<StructuralElement> = getEnterpriseTopGroups(
+        allActions,
+        mainSize,
+        sqlSize,
+        mongoSize,
+        dnsSize,
+        scheduleTaskSize,
+        openSearchSize
+    )
 ) : ApiWsIndividual(
     sampleType,
     trackOperator, index, allActions,
@@ -120,7 +125,8 @@ class RPCIndividual(
             sqlSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_SQL),
             mongoSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_MONGO),
             dnsSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_DNS),
-            scheduleTaskSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_SCHEDULE_TASK)
+            scheduleTaskSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_SCHEDULE_TASK),
+            openSearchSize = groupsView()!!.sizeOfGroup(GroupsOfChildren.INITIALIZATION_OPENSEARCH),
         )
     }
 

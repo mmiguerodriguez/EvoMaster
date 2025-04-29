@@ -92,7 +92,7 @@ class GraphQLActionNamingStrategyTest {
 
         val actions = mutableListOf<EnterpriseActionGroup<*>>()
         actions.add(EnterpriseActionGroup(mutableListOf(action),GraphQLAction::class.java))
-        val individual = GraphQLIndividual(sampleType, actions)
+        val individual = GraphQLIndividual(sampleType, actions,)
         TestUtils.doInitializeIndividualForTesting(individual)
 
         val fitnessVal = FitnessValue(0.0)

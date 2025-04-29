@@ -72,6 +72,8 @@ object RestActionTestCaseUtils {
             mongoSize++
         }
 
+        // TODO-MIGUE: Add OpenSearchSize for tests
+
         actions.add(restResourceCall)
 
         val individual = RestIndividual(
@@ -83,7 +85,7 @@ object RestActionTestCaseUtils {
             1,
             sqlSize,
             mongoSize,
-            0
+            0,
         )
 
         TestUtils.doInitializeIndividualForTesting(individual, Randomness())

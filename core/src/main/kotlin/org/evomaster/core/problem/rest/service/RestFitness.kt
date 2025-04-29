@@ -2,8 +2,8 @@ package org.evomaster.core.problem.rest.service
 
 import org.evomaster.core.sql.SqlAction
 import org.evomaster.core.mongo.MongoDbAction
+import org.evomaster.core.opensearch.OpenSearchAction
 import org.evomaster.core.problem.httpws.auth.AuthUtils
-import org.evomaster.core.problem.rest.RestCallAction
 import org.evomaster.core.problem.rest.RestCallResult
 import org.evomaster.core.problem.rest.RestIndividual
 import org.evomaster.core.search.action.ActionFilter
@@ -43,10 +43,9 @@ open class RestFitness : AbstractRestFitness() {
 
         doDbCalls(individual.seeInitializingActions().filterIsInstance<SqlAction>(), actionResults = actionResults)
         doMongoDbCalls(individual.seeInitializingActions().filterIsInstance<MongoDbAction>(), actionResults = actionResults)
-
+        doOpenSearchDbCalls(individual.seeInitializingActions().filterIsInstance<OpenSearchAction>(), actionResults = actionResults)
 
         val fv = FitnessValue(individual.size().toDouble())
-
 
         //used for things like chaining "location" paths
         val chainState = mutableMapOf<String, String>()

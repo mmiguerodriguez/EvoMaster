@@ -10,6 +10,10 @@ import org.evomaster.core.mongo.MongoDbAction
 import org.evomaster.core.mongo.MongoDbActionResult
 import org.evomaster.core.mongo.MongoDbActionTransformer
 import org.evomaster.core.mongo.MongoExecution
+import org.evomaster.core.opensearch.OpenSearchAction
+import org.evomaster.core.opensearch.OpenSearchActionResult
+import org.evomaster.core.opensearch.OpenSearchActionTransformer
+import org.evomaster.core.opensearch.OpenSearchExecution
 import org.evomaster.core.remote.service.RemoteController
 import org.evomaster.core.search.action.Action
 import org.evomaster.core.search.action.ActionResult
@@ -163,6 +167,30 @@ abstract class EnterpriseFitness<T> : FitnessFunction<T>() where T : Individual 
         return true
     }
 
+    fun doOpenSearchDbCalls(allDbActions: List<OpenSearchAction>, actionResults: MutableList<ActionResult>) : Boolean {
+        if (allDbActions.isEmpty()) {
+            return true
+        }
+
+        val openSearchDbResults = (allDbActions).map { OpenSearchActionResult(it.getLocalId()) }
+        actionResults.addAll(openSearchDbResults)
+
+        val dto = try {
+            OpenSearchActionTransformer.transform(allDbActions)
+        }catch (e : IllegalArgumentException){
+            throw e
+        }
+
+        val openSearchResults = rc.executeOpenSearchDatabaseInsertions(dto)
+        val executedResults = openSearchResults?.executionResults
+
+        executedResults?.forEachIndexed { index, b ->
+            openSearchDbResults[index].setInsertExecutionResult(b)
+        }
+
+        return true
+    }
+
     protected fun registerNewAction(action: Action, index: Int){
         rc.registerNewAction(getActionDto(action, index))
     }
@@ -284,6 +312,18 @@ abstract class EnterpriseFitness<T> : FitnessFunction<T>() where T : Individual 
                 fv.setMongoExecution(i, MongoExecution.fromDto(extra.mongoExecutionsDto))
             }
             fv.aggregateMongoDatabaseData()
+        }
+
+        if (configuration.heuristicsForOpenSearch) {
+            handleOpenSearchHeuristics(dto, fv)
+        }
+
+        if (configuration.extractOpenSearchExecutionInfo) {
+            for (i in 0 until dto.extraHeuristics.size) {
+                val extra = dto.extraHeuristics[i]
+                fv.setOpenSearchExecution(i, OpenSearchExecution.fromDto(extra.openSearchExecutionsDto))
+            }
+            fv.aggregateOpenSearchDatabaseData()
         }
     }
 

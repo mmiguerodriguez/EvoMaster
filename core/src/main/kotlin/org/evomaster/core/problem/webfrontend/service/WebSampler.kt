@@ -82,7 +82,7 @@ class WebSampler : EnterpriseSampler<WebIndividual>() {
             val a = sampleUndefinedAction()
             actions.add(EnterpriseActionGroup(mutableListOf(a), WebAction::class.java))
         }
-        val ind =  WebIndividual(SampleType.RANDOM, actions)
+        val ind =  WebIndividual(SampleType.RANDOM, actions,)
         ind.doGlobalInitialize(searchGlobalState)
 
         return ind

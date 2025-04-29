@@ -6,11 +6,14 @@ import org.evomaster.core.sql.SqlAction
 import org.evomaster.core.sql.SqlActionResult
 import org.evomaster.core.mongo.MongoDbAction
 import org.evomaster.core.mongo.MongoDbActionResult
+import org.evomaster.core.opensearch.OpenSearchAction
+import org.evomaster.core.opensearch.OpenSearchActionResult
 import org.evomaster.core.output.*
 import org.evomaster.core.problem.externalservice.HostnameResolutionAction
 import org.evomaster.core.search.action.EvaluatedDbAction
 import org.evomaster.core.search.EvaluatedIndividual
-import org.evomaster.core.search.action.EvaluatedMongoDbAction
+import org.evomaster.core.search.action.EvaluatedMongoDbAction;
+import org.evomaster.core.search.action.EvaluatedOpenSearchAction;
 import org.evomaster.core.search.gene.utils.GeneUtils
 import org.evomaster.core.utils.StringUtils
 
@@ -47,6 +50,11 @@ abstract class ApiTestCaseWriter : TestCaseWriter() {
         if (initializingMongoResults.any { (it as? MongoDbActionResult) == null })
             throw IllegalStateException("the type of results are expected as MongoDbActionResults")
 
+        val initializingOpenSearchActions = ind.individual.seeInitializingActions().filterIsInstance<OpenSearchAction>()
+        val initializingOpenSearchResults = (ind.seeResults(initializingOpenSearchActions))
+        if (initializingOpenSearchResults.any { (it as? OpenSearchActionResult) == null })
+            throw IllegalStateException("the type of results are expected as OpenSearchActionResults")
+
         val initializingHostnameResolutionActions = ind.individual
             .seeInitializingActions()
             .filterIsInstance<HostnameResolutionAction>()
@@ -65,6 +73,15 @@ abstract class ApiTestCaseWriter : TestCaseWriter() {
                 format,
                 initializingMongoActions.indices.map {
                     EvaluatedMongoDbAction(initializingMongoActions[it], initializingMongoResults[it] as MongoDbActionResult)
+                },
+                lines, insertionVars = insertionVars, skipFailure = config.skipFailureSQLInTestFile)
+        }
+
+        if (initializingOpenSearchActions.isNotEmpty()) {
+            OpenSearchWriter.handleOpenSearchInitialization(
+                format,
+                initializingOpenSearchActions.indices.map {
+                    EvaluatedOpenSearchAction(initializingOpenSearchActions[it], initializingOpenSearchResults[it] as OpenSearchActionResult)
                 },
                 lines, insertionVars = insertionVars, skipFailure = config.skipFailureSQLInTestFile)
         }

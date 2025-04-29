@@ -174,6 +174,8 @@ object GeneSamplerForTests {
             // Mongo genes
             ObjectIdGene::class -> sampleMongoObjectIdGene(rand) as T
 
+            // TODO-MIGUE: OpenSearchGenes
+
             else -> throw IllegalStateException("No sampler for $klass")
         }
     }

@@ -2,7 +2,6 @@ package org.evomaster.core.sql
 
 import org.evomaster.client.java.controller.api.dto.database.operations.*
 
-
 interface DatabaseExecutor {
 
     /**
@@ -28,4 +27,10 @@ interface DatabaseExecutor {
      * Return the result of whether it success
      */
     fun executeMongoDatabaseInsertions(dto: MongoDatabaseCommandDto): MongoInsertionResultsDto?
+
+    /**
+     * Execute the given INSERT OPENSEARCH command (in DTO format).
+     * Return the result of whether it success
+     */
+    fun executeOpenSearchDatabaseInsertions(dto: OpenSearchDatabaseCommandDto): OpenSearchInsertionResultsDto?
 }

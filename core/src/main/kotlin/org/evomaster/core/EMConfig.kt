@@ -519,6 +519,16 @@ class EMConfig {
                     "extracting Mongo execution info with 'extractMongoExecutionInfo'")
         }
 
+        if (shouldGenerateOpenSearchData() && !heuristicsForOpenSearch) {
+            throw ConfigProblemException("Cannot generate OpenSearch data if you do not enable " +
+                    "collecting heuristics with 'heuristicsForOpenSearch'")
+        }
+
+        if (shouldGenerateOpenSearchData() && !extractOpenSearchExecutionInfo) {
+            throw ConfigProblemException("Cannot generate OpenSearch data if you do not enable " +
+                    "extracting OpenSearch execution info with 'extractOpenSearchExecutionInfo'")
+        }
+
         if (enableTrackEvaluatedIndividual && enableTrackIndividual) {
             throw ConfigProblemException("When tracking EvaluatedIndividual, it is not necessary to track individual")
         }
@@ -780,6 +790,8 @@ class EMConfig {
     fun shouldGenerateSqlData() = isUsingAdvancedTechniques() && (generateSqlDataWithDSE || generateSqlDataWithSearch)
 
     fun shouldGenerateMongoData() = generateMongoData
+
+    fun shouldGenerateOpenSearchData() = generateOpenSearchData
 
     fun experimentalFeatures(): List<String> {
 
@@ -1406,6 +1418,12 @@ class EMConfig {
     @Cfg("Enable extracting Mongo execution info")
     var extractMongoExecutionInfo = true
 
+    @Cfg("Tracking of OpenSearch commands to improve test generation")
+    var heuristicsForOpenSearch = true
+
+    @Cfg("Enable extracting OpenSearch execution info")
+    var extractOpenSearchExecutionInfo = true
+
     @Experimental
     @Cfg("Enable EvoMaster to generate SQL data with direct accesses to the database. Use Dynamic Symbolic Execution")
     var generateSqlDataWithDSE = false
@@ -1415,6 +1433,9 @@ class EMConfig {
 
     @Cfg("Enable EvoMaster to generate Mongo data with direct accesses to the database")
     var generateMongoData = true
+
+    @Cfg("Enable EvoMaster to generate OpenSearch data with direct accesses to the database")
+    var generateOpenSearchData = true
 
     @Cfg("When generating SQL data, how many new rows (max) to generate for each specific SQL Select")
     @Min(1.0)
@@ -1548,6 +1569,10 @@ class EMConfig {
             " on the JVM.")
     var instrumentMR_MONGO = true
 
+    @Cfg("Execute instrumentation for method replace with category OPENSEARCH." +
+            " Note: this applies only for languages in which instrumentation is applied at runtime, like Java/Kotlin" +
+            " on the JVM.")
+    var instrumentMR_OPENSEARCH = true
 
     @Cfg("Execute instrumentation for method replace with category NET." +
             " Note: this applies only for languages in which instrumentation is applied at runtime, like Java/Kotlin" +
@@ -2538,6 +2563,7 @@ class EMConfig {
         if (instrumentMR_EXT_0) categories.add(ReplacementCategory.EXT_0.toString())
         if (instrumentMR_NET) categories.add(ReplacementCategory.NET.toString())
         if (instrumentMR_MONGO) categories.add(ReplacementCategory.MONGO.toString())
+        if (instrumentMR_OPENSEARCH) categories.add(ReplacementCategory.OPENSEARCH.toString())
         return categories.joinToString(",")
     }
 

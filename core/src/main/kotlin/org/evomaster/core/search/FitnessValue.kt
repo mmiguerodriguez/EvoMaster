@@ -3,10 +3,12 @@ package org.evomaster.core.search
 import com.webfuzzing.commons.faults.FaultCategory
 import org.evomaster.client.java.controller.api.dto.BootTimeInfoDto
 import org.evomaster.client.java.controller.api.dto.database.execution.MongoFailedQuery
+import org.evomaster.client.java.controller.api.dto.database.execution.OpenSearchFailedQuery
 import org.evomaster.core.EMConfig
 import org.evomaster.core.sql.DatabaseExecution
 import org.evomaster.core.EMConfig.SecondaryObjectiveStrategy.*
 import org.evomaster.core.mongo.MongoExecution
+import org.evomaster.core.opensearch.OpenSearchExecution
 import org.evomaster.core.problem.externalservice.httpws.HttpWsExternalService
 import org.evomaster.core.problem.externalservice.httpws.HttpExternalServiceRequest
 import org.evomaster.core.search.service.IdMapper
@@ -75,7 +77,19 @@ class FitnessValue(
      */
     val databaseExecutions: MutableMap<Int, DatabaseExecution> = mutableMapOf()
 
+    /**
+     * Key -> action Id
+     *
+     * Value -> info on how the MongoDB was accessed
+     */
     val mongoExecutions: MutableMap<Int, MongoExecution> = mutableMapOf()
+
+    /**
+     * Key -> action Id
+     *
+     * Value -> info on how OpenSearch was accessed
+     */
+    val openSearchExecutions: MutableMap<Int, OpenSearchExecution> = mutableMapOf()
 
     /**
      * When SUT does SQL commands using WHERE, keep track of when those "fails" (ie evaluate
@@ -94,6 +108,13 @@ class FitnessValue(
      * to false), in particular, the collection and fields in them involved
      */
     private val aggregatedFailedFind: MutableList<MongoFailedQuery> = mutableListOf()
+
+    /**
+     * TODO-MIGUE: Review
+     * When SUT does OPENSEARCH commands using index search, keep track of when those "fails" (ie evaluate
+     * to false), in particular, the collection and fields in them involved
+     */
+    private val aggregatedFailedSearch: MutableList<OpenSearchFailedQuery> = mutableListOf()
 
     /**
      * To keep track of accessed external services prevent from adding them again
@@ -126,8 +147,10 @@ class FitnessValue(
         copy.extraToMinimize.putAll(this.extraToMinimize)
         copy.databaseExecutions.putAll(this.databaseExecutions) //note: DatabaseExecution supposed to be immutable
         copy.mongoExecutions.putAll(this.mongoExecutions)
+        copy.openSearchExecutions.putAll(this.openSearchExecutions)
         copy.aggregateDatabaseData()
         copy.aggregateMongoDatabaseData()
+        copy.aggregateOpenSearchDatabaseData()
         copy.executionTimeMs = executionTimeMs
         copy.accessedExternalServiceRequests.putAll(this.accessedExternalServiceRequests)
         copy.accessedDefaultWM.putAll(this.accessedDefaultWM.toMap())
@@ -157,6 +180,11 @@ class FitnessValue(
         mongoExecutions.values.map { it.failedQueries?.let { it1 -> aggregatedFailedFind.addAll(it1) } }
     }
 
+    fun aggregateOpenSearchDatabaseData() {
+        aggregatedFailedSearch.clear()
+        openSearchExecutions.values.map { it.failedQueries?.let { it1 -> aggregatedFailedSearch.addAll(it1) } }
+    }
+
     fun setExtraToMinimize(actionIndex: Int, list: List<Double>) {
         extraToMinimize[actionIndex] = list.sorted()
     }
@@ -167,6 +195,10 @@ class FitnessValue(
 
     fun setMongoExecution(actionIndex: Int, mongoExecution: MongoExecution){
         mongoExecutions[actionIndex] = mongoExecution
+    }
+
+    fun setOpenSearchExecution(actionIndex: Int, openSearchExecution: OpenSearchExecution) {
+        openSearchExecutions[actionIndex] = openSearchExecution
     }
 
     fun isAnyDatabaseExecutionInfo() = databaseExecutions.isNotEmpty()

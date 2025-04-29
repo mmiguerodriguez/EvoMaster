@@ -14,6 +14,7 @@ public class OpenSearchSearchCommand implements Serializable {
     /**
      * Name of the database that the operation was applied to
      */
+    // TODO-MIGUE: Do we have a database name?
     private final String databaseName;
 
     /**

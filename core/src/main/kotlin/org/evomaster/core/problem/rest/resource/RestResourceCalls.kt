@@ -8,6 +8,7 @@ import org.evomaster.core.search.action.ActionTree
 import org.evomaster.core.sql.SqlAction
 import org.evomaster.core.sql.SqlActionUtils
 import org.evomaster.core.mongo.MongoDbAction
+import org.evomaster.core.opensearch.OpenSearchAction
 import org.evomaster.core.problem.rest.RestCallAction
 import org.evomaster.core.problem.rest.RestIndividual
 import org.evomaster.core.problem.api.param.Param
@@ -42,7 +43,7 @@ class RestResourceCalls(
     randomness: Randomness? = null
 ) : ActionTree(
     children,
-    { k -> SqlAction::class.java.isAssignableFrom(k) || MongoDbAction::class.java.isAssignableFrom(k)  || EnterpriseActionGroup::class.java.isAssignableFrom(k) }
+    { k -> SqlAction::class.java.isAssignableFrom(k) || MongoDbAction::class.java.isAssignableFrom(k) || OpenSearchAction::class.java.isAssignableFrom(k) || EnterpriseActionGroup::class.java.isAssignableFrom(k) }
 ) {
 
     constructor(
@@ -85,6 +86,11 @@ class RestResourceCalls(
     private val mongoDbActions: List<MongoDbAction>
         get() {
             return children.flatMap { it.flatten() }.filterIsInstance<MongoDbAction>()
+        }
+
+    private val openSearchActions: List<OpenSearchAction>
+        get() {
+            return children.flatMap { it.flatten() }.filterIsInstance<OpenSearchAction>()
         }
 
     private val dnsActions: List<HostnameResolutionAction>
@@ -191,13 +197,14 @@ class RestResourceCalls(
     fun seeActions(filter: ActionFilter): List<out Action> {
         return when (filter) {
             ActionFilter.ALL -> sqlActions.plus(externalServiceActions).plus(mainActions) // FIXME: Is this correct?
-            ActionFilter.INIT -> sqlActions.plus(mongoDbActions).plus(dnsActions)
+            ActionFilter.INIT -> sqlActions.plus(mongoDbActions).plus(dnsActions).plus(openSearchActions)
             ActionFilter.ONLY_SQL -> sqlActions
             ActionFilter.NO_INIT, ActionFilter.NO_SQL, ActionFilter.NO_DB -> externalServiceActions.plus(mainActions)
             ActionFilter.MAIN_EXECUTABLE -> mainActions
             ActionFilter.ONLY_EXTERNAL_SERVICE -> externalServiceActions
             ActionFilter.NO_EXTERNAL_SERVICE -> sqlActions.plus(mainActions)
             ActionFilter.ONLY_MONGO -> mongoDbActions
+            ActionFilter.ONLY_OPENSEARCH -> openSearchActions
             ActionFilter.ONLY_DNS -> dnsActions
             ActionFilter.ONLY_DB -> sqlActions.plus(mongoDbActions)
             ActionFilter.ONLY_SCHEDULE_TASK -> throw IllegalStateException("schedule task is not support in resource-based solution for REST Problem")

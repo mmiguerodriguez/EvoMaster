@@ -195,6 +195,7 @@ class InitializationGroupedActionsImpacts(val abstract: Boolean, val enableImpac
         }
 
         val original = completeSequence.size
+        // TODO-MIGUE: should add OpenSearchAction?
         val seq = list.filter{(it is SqlAction && !it.representExistingData) || it is MongoDbAction }
         if (seq.size > original) {
             log.warn("there are more db actions after the truncation")

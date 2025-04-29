@@ -2,6 +2,7 @@ package org.evomaster.core.search.impact.impactinfocollection
 
 import org.evomaster.core.sql.SqlAction
 import org.evomaster.core.mongo.MongoDbAction
+import org.evomaster.core.opensearch.OpenSearchAction
 import org.evomaster.core.problem.externalservice.HostnameResolutionAction
 import org.evomaster.core.search.action.EnvironmentAction
 import org.evomaster.core.search.action.Action
@@ -28,7 +29,7 @@ import kotlin.reflect.KClass
 open class ImpactsOfIndividual(
     /**
      * map of impacts in initialization based on [Individual.seeInitializingActions]
-     * - key is the type of the action, eg SqlAction, MongoDbAction
+     * - key is the type of the action, eg SqlAction, MongoDbAction, OpenSearchAction
      * - value is impacts for the actions
      */
     val initActionImpacts: MutableMap<String, InitializationGroupedActionsImpacts>,
@@ -71,8 +72,9 @@ open class ImpactsOfIndividual(
 
         val SQL_ACTION_KEY = SqlAction::class.java.name
 
-
         val MONGODB_ACTION_KEY = MongoDbAction::class.java.name
+
+        val OPENSEARCH_ACTION_KEY = OpenSearchAction::class.java.name
 
         val HOSTNAME_RESOLUTION_KEY = HostnameResolutionAction::class.java.name
     }

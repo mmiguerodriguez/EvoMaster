@@ -2,12 +2,12 @@ package org.evomaster.core.search
 
 import org.evomaster.core.sql.SqlAction
 import org.evomaster.core.mongo.MongoDbAction
+import org.evomaster.core.opensearch.OpenSearchAction
 import org.evomaster.core.output.OutputFormat
 import org.evomaster.core.output.Termination
 import org.evomaster.core.output.TestSuiteFileName
 import org.evomaster.core.problem.enterprise.DetectedFaultUtils
 import org.evomaster.core.problem.externalservice.HostnameResolutionAction
-import org.evomaster.core.search.action.ActionFilter
 
 
 class Solution<T>(
@@ -74,6 +74,10 @@ where T : Individual {
 
     fun hasAnyMongoAction() : Boolean{
         return individuals.any { ind -> ind.individual.seeAllActions().any { a ->  a is MongoDbAction}}
+    }
+
+    fun hasAnyOpenSearchAction() : Boolean{
+        return individuals.any { ind -> ind.individual.seeAllActions().any { a ->  a is OpenSearchAction }}
     }
 
     /**

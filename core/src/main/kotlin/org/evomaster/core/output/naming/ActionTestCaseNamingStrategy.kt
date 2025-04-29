@@ -2,6 +2,7 @@ package org.evomaster.core.output.naming
 
 import com.webfuzzing.commons.faults.FaultCategory
 import org.evomaster.core.mongo.MongoDbAction
+import org.evomaster.core.opensearch.OpenSearchAction
 import org.evomaster.core.problem.enterprise.DetectedFaultUtils
 import org.evomaster.core.problem.externalservice.httpws.HttpExternalServiceAction
 import org.evomaster.core.search.EvaluatedIndividual
@@ -31,9 +32,11 @@ abstract class ActionTestCaseNamingStrategy(
     protected val sql = "sql"
     protected val mongo = "mongo"
     protected val wiremock = "wireMock"
+    protected val opensearch = "opensearch"
 
     private var shouldAddSqlSuffix = true
     private var shouldAddMongoSuffix = true
+    private var shouldAddOpenSearchSuffix = true
     private var shouldAddWireMockSuffix = true
 
     /**
@@ -52,6 +55,7 @@ abstract class ActionTestCaseNamingStrategy(
         if (testCasesSize > 2) {
             shouldAddSqlSuffix = shouldAddEnvironmentAction(::hasSqlAction, individuals)
             shouldAddMongoSuffix = shouldAddEnvironmentAction(::hasMongoAction, individuals)
+            shouldAddOpenSearchSuffix = shouldAddEnvironmentAction(::hasOpenSearchAction, individuals)
             shouldAddWireMockSuffix = shouldAddWireMock(individuals)
         }
     }
@@ -126,6 +130,7 @@ abstract class ActionTestCaseNamingStrategy(
         val initActionNames = mutableListOf<String>()
         if (shouldAddSqlSuffix && hasSqlAction(initializingActions)) initActionNames.add(sql)
         if (shouldAddMongoSuffix && hasMongoAction(initializingActions)) initActionNames.add(mongo)
+        if (shouldAddOpenSearchSuffix && hasMongoAction(initializingActions)) initActionNames.add(opensearch)
         if (shouldAddWireMockSuffix && usesWireMock(allActions)) initActionNames.add(wiremock)
 
         if (initActionNames.isNotEmpty()) {
@@ -140,6 +145,10 @@ abstract class ActionTestCaseNamingStrategy(
 
     private fun hasMongoAction(actions: List<EnvironmentAction>): Boolean {
         return actions.any { it is MongoDbAction }
+    }
+
+    private fun hasOpenSearchAction(actions: List<EnvironmentAction>): Boolean {
+        return actions.any { it is OpenSearchAction }
     }
 
     private fun usesWireMock(actions: List<Action>): Boolean {

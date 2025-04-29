@@ -197,7 +197,7 @@ class TestSuiteOrganizerTest {
         val actions = mutableListOf<EnterpriseActionGroup<*>>()
         actions.add(EnterpriseActionGroup(mutableListOf(action), GraphQLAction::class.java))
 
-        val individual = GraphQLIndividual(SampleType.RANDOM, actions)
+        val individual = GraphQLIndividual(SampleType.RANDOM, actions,)
         TestUtils.doInitializeIndividualForTesting(individual)
 
         val results = listOf(GraphQlCallResult(action.getLocalId()))

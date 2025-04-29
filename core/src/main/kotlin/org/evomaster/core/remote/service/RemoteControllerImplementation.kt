@@ -507,6 +507,10 @@ class RemoteControllerImplementation() : RemoteController{
         return executeMongoDatabaseCommandAndGetResults(dto, object : GenericType<WrappedResponseDto<MongoInsertionResultsDto>>() {})
     }
 
+    override fun executeOpenSearchDatabaseInsertions(dto: OpenSearchDatabaseCommandDto): OpenSearchInsertionResultsDto? {
+        return executeOpenSearchDatabaseCommandAndGetResults(dto, object : GenericType<WrappedResponseDto<OpenSearchInsertionResultsDto>>() {})
+    }
+
     private fun <T> executeDatabaseCommandAndGetResults(dto: DatabaseCommandDto, type: GenericType<WrappedResponseDto<T>>): T?{
 
         val response = makeHttpCall {
@@ -535,6 +539,21 @@ class RemoteControllerImplementation() : RemoteController{
         }
 
         val dto = getDtoFromResponse(response, type)
+
+        return dto?.data
+    }
+
+    private fun <T> executeOpenSearchDatabaseCommandAndGetResults(dto: OpenSearchDatabaseCommandDto, type: GenericType<WrappedResponseDto<T>>): T? {
+        val response = makeHttpCall {
+            getWebTarget()
+                .path(ControllerConstants.OPENSEARCH_INSERTION)
+                .request()
+                .post(Entity.entity(dto, MediaType.APPLICATION_JSON_TYPE))
+        }
+
+        val dto = getDtoFromResponse(response, type)
+
+        // TODO-MIGUE: Check response?
 
         return dto?.data
     }

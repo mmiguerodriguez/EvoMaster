@@ -4,6 +4,7 @@ import org.evomaster.core.Lazy
 import org.evomaster.core.sql.SqlAction
 import org.evomaster.core.sql.SqlActionUtils
 import org.evomaster.core.mongo.MongoDbAction
+import org.evomaster.core.opensearch.OpenSearchAction
 import org.evomaster.core.problem.api.ApiWsIndividual
 import org.evomaster.core.problem.externalservice.ApiExternalServiceAction
 import org.evomaster.core.problem.externalservice.HostnameResolutionAction
@@ -51,7 +52,7 @@ abstract class EnterpriseIndividual(
     /**
      * if no group definition is specified, then it is assumed that all action are for the MAIN group
      */
-    groups : GroupsOfChildren<StructuralElement> = getEnterpriseTopGroups(children,children.size,0, 0, 0, 0)
+    groups : GroupsOfChildren<StructuralElement> = getEnterpriseTopGroups(children, children.size, 0, 0, 0, 0, 0)
 ) : Individual(
     trackOperator,
     index,
@@ -73,6 +74,7 @@ abstract class EnterpriseIndividual(
             sizeMongo: Int,
             sizeDNS: Int,
             sizeScheduleTasks: Int,
+            sizeOpenSearch: Int,
         ) : GroupsOfChildren<StructuralElement>{
 
             if(children.size != sizeSQL +sizeMongo + sizeDNS + sizeScheduleTasks + sizeMain){
@@ -123,6 +125,12 @@ abstract class EnterpriseIndividual(
             val endIndexScheduleTasks = children.indexOfLast { a -> a is ScheduleTaskAction }
             val schedule = ChildGroup<StructuralElement>(GroupsOfChildren.INITIALIZATION_SCHEDULE_TASK,{e -> e is ActionComponent && e.flatten().all { a -> a is ScheduleTaskAction }},
                 if(sizeScheduleTasks==0) -1 else startIndexScheduleTasks , if(sizeScheduleTasks==0) -1 else endIndexScheduleTasks
+            )
+
+            val startIndexOpenSearch = children.indexOfFirst { a -> a is OpenSearchAction }
+            val endIndexOpenSearch = children.indexOfLast { a -> a is OpenSearchAction }
+            val openSearch = ChildGroup<StructuralElement>(GroupsOfChildren.INITIALIZATION_OPENSEARCH,{e -> e is ActionComponent && e.flatten().all { a -> a is OpenSearchAction }},
+                if(sizeOpenSearch==0) -1 else startIndexOpenSearch , if(sizeOpenSearch==0) -1 else endIndexOpenSearch
             )
 
             val initSize = sizeSQL+sizeMongo+sizeDNS+sizeScheduleTasks
@@ -205,12 +213,14 @@ abstract class EnterpriseIndividual(
                 groupsView()!!
                     .getAllInGroup(GroupsOfChildren.INITIALIZATION_SQL).flatMap { (it as ActionComponent).flatten() } + groupsView()!!
                     .getAllInGroup(GroupsOfChildren.INITIALIZATION_MONGO).flatMap { (it as ActionComponent).flatten()}+ groupsView()!!
+                    .getAllInGroup(GroupsOfChildren.INITIALIZATION_OPENSEARCH).flatMap { (it as ActionComponent).flatten()}+ groupsView()!!
                     .getAllInGroup(GroupsOfChildren.INITIALIZATION_DNS).flatMap { (it as ActionComponent).flatten()} + groupsView()!!
                     .getAllInGroup(GroupsOfChildren.INITIALIZATION_SCHEDULE_TASK).flatMap { (it as ActionComponent).flatten() }
             // WARNING: this can still return DbAction, MongoDbAction and External ones...
             ActionFilter.NO_INIT -> groupsView()!!.getAllInGroup(GroupsOfChildren.MAIN).flatMap { (it as ActionComponent).flatten() }
             ActionFilter.ONLY_SQL -> seeAllActions().filterIsInstance<SqlAction>()
             ActionFilter.ONLY_MONGO -> seeAllActions().filterIsInstance<MongoDbAction>()
+            ActionFilter.ONLY_OPENSEARCH -> seeAllActions().filterIsInstance<OpenSearchAction>()
             ActionFilter.NO_SQL -> seeAllActions().filter { it !is SqlAction }
             ActionFilter.ONLY_DB -> seeAllActions().filter { it is SqlAction || it is MongoDbAction }
             ActionFilter.NO_DB -> seeAllActions().filter { it !is SqlAction && it !is MongoDbAction }

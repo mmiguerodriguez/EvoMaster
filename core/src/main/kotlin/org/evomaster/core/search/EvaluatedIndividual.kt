@@ -12,6 +12,7 @@ import org.evomaster.core.sql.SqlAction
 import org.evomaster.core.sql.SqlActionResult
 import org.evomaster.core.logging.LoggingUtil
 import org.evomaster.core.mongo.MongoDbAction
+import org.evomaster.core.opensearch.OpenSearchAction
 import org.evomaster.core.problem.enterprise.EnterpriseActionResult
 import org.evomaster.core.problem.externalservice.ApiExternalServiceAction
 import org.evomaster.core.problem.rest.RestCallAction
@@ -988,7 +989,7 @@ class EvaluatedIndividual<T>(
         return !invalid
     }
     private fun initializingActionClasses(): List<KClass<*>> {
-        return listOf(MongoDbAction::class, SqlAction::class)
+        return listOf(MongoDbAction::class, SqlAction::class, OpenSearchAction::class)
     }
 
     fun hasAnyPotentialFault() = this.fitness.hasAnyPotentialFault(this.individual.searchGlobalState!!.idMapper)

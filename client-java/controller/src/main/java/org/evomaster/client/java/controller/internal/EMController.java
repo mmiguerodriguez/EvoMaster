@@ -7,10 +7,13 @@ import org.evomaster.client.java.controller.api.dto.database.operations.Database
 import org.evomaster.client.java.controller.api.dto.database.operations.InsertionResultsDto;
 import org.evomaster.client.java.controller.api.dto.database.operations.MongoDatabaseCommandDto;
 import org.evomaster.client.java.controller.api.dto.database.operations.MongoInsertionResultsDto;
+import org.evomaster.client.java.controller.api.dto.database.operations.OpenSearchDatabaseCommandDto;
+import org.evomaster.client.java.controller.api.dto.database.operations.OpenSearchInsertionResultsDto;
 import org.evomaster.client.java.controller.api.dto.problem.*;
 import org.evomaster.client.java.controller.api.dto.problem.rpc.ScheduleTaskInvocationsDto;
 import org.evomaster.client.java.controller.api.dto.problem.rpc.ScheduleTaskInvocationsResult;
 import org.evomaster.client.java.controller.mongo.MongoScriptRunner;
+import org.evomaster.client.java.controller.opensearch.OpenSearchScriptRunner;
 import org.evomaster.client.java.controller.problem.*;
 import org.evomaster.client.java.sql.QueryResult;
 import org.evomaster.client.java.sql.SqlScriptRunner;
@@ -878,6 +881,61 @@ public class EMController {
             return Response.status(500).entity(WrappedResponseDto.withError(msg)).build();
         } finally {
             sutController.setExecutingInitMongo(false);
+        }
+    }
+
+    @Path(ControllerConstants.OPENSEARCH_INSERTION)
+    @Consumes(Formats.JSON_V1)
+    @POST
+    public Response executeOpenSearchInsertion(OpenSearchDatabaseCommandDto dto, @Context HttpServletRequest httpServletRequest) {
+        assert trackRequestSource(httpServletRequest);
+
+        try {
+            sutController.setExecutingInitOpenSearch(true);
+            SimpleLogger.debug("Received OpenSearch database command");
+
+            Object connection = noKillSwitch(sutController::getOpenSearchConnection);
+            if (connection == null) {
+                String msg = "No active database connection";
+                SimpleLogger.warn(msg);
+                return Response.status(400).entity(WrappedResponseDto.withError(msg)).build();
+            }
+
+            if (dto.insertions == null || dto.insertions.isEmpty()) {
+                String msg = "No input command";
+                SimpleLogger.warn(msg);
+                return Response.status(400).entity(WrappedResponseDto.withError(msg)).build();
+            }
+
+            if (dto.insertions.stream().anyMatch(i -> i.index.isEmpty() || i.databaseName.isEmpty())) {
+                String msg = "Insertion with no target index or database";
+                SimpleLogger.warn(msg);
+                return Response.status(400).entity(WrappedResponseDto.withError(msg)).build();
+            }
+
+            OpenSearchInsertionResultsDto openSearchInsertionResultsDto;
+            try {
+                openSearchInsertionResultsDto = OpenSearchScriptRunner.executeInsert(connection, dto.insertions);
+            } catch (Exception e) {
+                String msg = "Failed to execute database command: " + e.getMessage();
+                SimpleLogger.warn(msg);
+                openSearchInsertionResultsDto = new OpenSearchInsertionResultsDto();
+                openSearchInsertionResultsDto.handleFailedInsertion(dto.insertions, e);
+                return Response.status(400).entity(WrappedResponseDto.withData(openSearchInsertionResultsDto)).build();
+            }
+
+            if (openSearchInsertionResultsDto != null) {
+                return Response.status(200).entity(WrappedResponseDto.withData(openSearchInsertionResultsDto)).build();
+            } else {
+                return Response.status(204).entity(WrappedResponseDto.withNoData()).build();
+            }
+
+        } catch (RuntimeException e) {
+            String msg = "Thrown exception: " + e.getMessage();
+            SimpleLogger.error(msg, e);
+            return Response.status(500).entity(WrappedResponseDto.withError(msg)).build();
+        } finally {
+            sutController.setExecutingInitOpenSearch(false);
         }
     }
 }

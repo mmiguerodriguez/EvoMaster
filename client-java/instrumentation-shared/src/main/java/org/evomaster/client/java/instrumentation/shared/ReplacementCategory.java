@@ -35,6 +35,10 @@ public enum ReplacementCategory {
     /**
      * Replacements to handle MONGO command interceptions
      */
-    MONGO
+    MONGO,
 
+    /**
+     * Replacements to handle OPENSEARCH command interceptions
+     */
+    OPENSEARCH
 }
