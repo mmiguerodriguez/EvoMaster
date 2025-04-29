@@ -77,6 +77,10 @@ class DummyController: RemoteController {
         TODO("Not yet implemented")
     }
 
+    override fun executeOpenSearchDatabaseInsertions(dto: OpenSearchDatabaseCommandDto): OpenSearchInsertionResultsDto? {
+        TODO("Not yet implemented")
+    }
+
     override fun invokeScheduleTasksAndGetResults(dtos: ScheduleTaskInvocationsDto): ScheduleTaskInvocationsResult? {
         TODO("Not yet implemented")
     }

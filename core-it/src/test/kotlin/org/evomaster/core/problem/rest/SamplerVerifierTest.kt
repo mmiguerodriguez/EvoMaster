@@ -403,6 +403,10 @@ class SamplerVerifierTest {
             return null
         }
 
+        override fun executeOpenSearchDatabaseInsertions(dto: OpenSearchDatabaseCommandDto): OpenSearchInsertionResultsDto? {
+            return null
+        }
+
         override fun getSutInfo(): SutInfoDto? {
             return sutInfoDto
         }

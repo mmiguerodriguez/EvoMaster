@@ -417,6 +417,10 @@ class SqlInsertBuilderTest {
             return null
         }
 
+        override fun executeOpenSearchDatabaseInsertions(dto: OpenSearchDatabaseCommandDto): OpenSearchInsertionResultsDto? {
+            return null
+        }
+
         override fun executeDatabaseCommandAndGetQueryResults(dto: DatabaseCommandDto): QueryResultDto? {
             return SqlScriptRunner.execCommand(connection, dto.command).toDto()
         }

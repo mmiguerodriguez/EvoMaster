@@ -671,6 +671,10 @@ abstract class RestIndividualTestBase {
             return null
         }
 
+        override fun executeOpenSearchDatabaseInsertions(dto: OpenSearchDatabaseCommandDto): OpenSearchInsertionResultsDto? {
+            return null
+        }
+
         override fun invokeScheduleTasksAndGetResults(dtos: ScheduleTaskInvocationsDto): ScheduleTaskInvocationsResult? {
             return null
         }

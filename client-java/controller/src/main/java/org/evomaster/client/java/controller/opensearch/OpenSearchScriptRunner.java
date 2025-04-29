@@ -37,7 +37,7 @@ public class OpenSearchScriptRunner {
             OpenSearchInsertionDto insertionDto = insertions.get(i);
 
             try {
-                Object document = parseEJSON(insertionDto.data);
+                Object document = insertionDto.data; // parseEJSON(insertionDto.data);
                 indexDocument(connection, insertionDto.databaseName, insertionDto.index, document);
                 openSearchResults.set(i, true);
                 SimpleLogger.debug(insertionDto.data + " inserted into database: " + insertionDto.databaseName + " and index: " + insertionDto.index);

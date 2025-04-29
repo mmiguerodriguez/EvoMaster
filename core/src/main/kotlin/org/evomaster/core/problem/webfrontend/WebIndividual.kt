@@ -15,7 +15,7 @@ class WebIndividual(
     sqlSize: Int = 0,
     mongoSize: Int = 0,
     dnsSize: Int = 0,
-    openSearchSize: Int,
+    openSearchSize: Int = 0,
     groups: GroupsOfChildren<StructuralElement> = getEnterpriseTopGroups(
         children,
         mainSize,
